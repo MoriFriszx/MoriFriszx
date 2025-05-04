@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Up Honkai Star Rail - MoriFriszx</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #22293C;
+      color: #A497B1;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .container-game, .container-pricelist {
+      background-color: #2e3650;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .game-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
+    .form-label {
+      color: #A497B1;
+    }
+    .price-card {
+      background-color: #5B4B78;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .price-card:hover {
+      transform: scale(1.05);
+    }
+    .btn-order {
+      background-color: #9C9BBB;
+      color: #22293C;
+      border: none;
+    }
+    .btn-order:hover {
+      background-color: #A497B1;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .popup {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .popup-content {
+      background: #22293C;
+      color: #A497B1;
+      padding: 20px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+    }
+    .popup-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: white;
+    }
+    .game-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .game-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      margin-right: 10px;
+    }
+    .game-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+    }
+    .order-details p {
+      margin: 4px 0;
+    }
+    .popup-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="container-game text-center mb-4">
+      <img src="image/hsr.png" class="game-logo mb-3" alt="Honkai Star Rail Logo">
+      <h3 class="text-white">Top Up Honkai Star Rail</h3>
+    </div>
+
+    <div class="container-game">
+      <div class="mb-3">
+        <label for="userId" class="form-label">User ID</label>
+        <input type="text" class="form-control" id="userId" placeholder="Masukkan ID Kamu">
+      </div>
+      <div class="mb-3">
+        <label for="serverSelect" class="form-label">Pilih Server</label>
+        <select class="form-select" id="serverSelect">
+          <option value="Pilih Server">Pilih Server</option>
+          <option value="Asia">Asia</option>
+          <option value="America">America</option>
+          <option value="Europe">Europe</option>
+          <option value="TW/HK/MO">TW/HK/MO</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="container-pricelist">
+      <h5 class="mb-3">Pilih Nominal</h5>
+      <div class="row" id="priceList"></div>
+    </div>
+
+    <!-- Tombol Konfirmasi -->
+    <button id="showConfirmation" class="btn btn-order w-100">Konfirmasi Pesanan</button>
+
+    <!-- Popup -->
+    <div id="confirmationPopup" class="popup hidden">
+      <div class="popup-content">
+        <button id="closePopupBtn" class="btn-close float-end" aria-label="Close"></button>
+        <h2 class="popup-title">Konfirmasi Pesanan Kamu</h2>
+        <div class="game-info">
+          <img src="image/genshin.png" alt="Genshin Impact" class="game-icon">
+          <div class="game-name">Genshin Impact</div>
+        </div>
+        <div class="order-details text-start">
+          <p><strong>User ID:</strong> <span id="uidDisplay"></span></p>
+          <p><strong>Server:</strong> <span id="serverDisplay"></span></p>
+          <p><strong>Item:</strong> <span id="itemDisplay"></span></p>
+          <p><strong>Harga:</strong> <span id="priceDisplay"></span></p>
+        </div>
+        <div class="popup-actions">
+          <a id="waOrder" class="btn btn-order w-100" target="_blank">Order via WhatsApp</a>
+          <a id="tgOrder" class="btn btn-order w-100" target="_blank">Order via Telegram</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedItem = "";
+    let selectedPrice = "";
+    let nickname = "";
+
+    // Load data dari spreadsheet
+    fetch("https://docs.google.com/spreadsheets/d/1vuxFw18vY3OS1OA2Tq0XOcFGJaUfiE-Wobk9B_MPCMw/gviz/tq?tqx=out:json&sheet=HonkaiStarRail")
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+        const priceListDiv = document.getElementById('priceList');
+        rows.forEach(row => {
+          const item = row.c[0]?.v || "";
+          const price = row.c[1]?.v || "";
+          const card = document.createElement('div');
+          card.className = 'col-6 col-md-4 mb-3';
+          card.innerHTML = `
+            <div class="price-card" onclick="selectItem('${item}', '${price}')">
+              <strong>${item}</strong><br>
+              <span>Rp. ${Number(price).toLocaleString("id-ID")}</span>
+            </div>`;
+          priceListDiv.appendChild(card);
+        });
+      });
+
+    function selectItem(item, price) {
+      selectedItem = item;
+      selectedPrice = price;
+    }
+
+      // Get nickname dari Enka API
+      document.getElementById("showConfirmation").addEventListener("click", async () => {
+  const uid = document.getElementById("userId").value;
+  const server = document.getElementById("serverSelect").value;
+
+      // Isi data ke popup
+      document.getElementById("uidDisplay").textContent = uid;
+      document.getElementById("serverDisplay").textContent = server;
+      document.getElementById("itemDisplay").textContent = selectedItem;
+      document.getElementById("priceDisplay").textContent = `Rp ${Number(selectedPrice).toLocaleString("id-ID")}`;
+
+      // Link WhatsApp & Telegram
+      const message = encodeURIComponent(`Halo, saya ingin top up Genshin Impact:\nID: ${uid}\nServer: ${server}\nNickname: ${nickname}\nPaket: ${selectedItem}\nHarga: Rp ${selectedPrice}`);
+      document.getElementById("waOrder").href = `https://wa.me/6285175050108?text=${message}`;
+      document.getElementById("tgOrder").href = `tg://resolve?domain=MoriFriszx&text=${message}`;
+
+      document.getElementById("confirmationPopup").classList.remove("hidden");
+    });
+
+    // Close popup
+    document.getElementById("closePopupBtn").addEventListener("click", () => {
+      document.getElementById("confirmationPopup").classList.add("hidden");
+    });
+  </script>
+</body>
+</html>

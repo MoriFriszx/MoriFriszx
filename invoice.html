@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice TopUp Manual</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #1A1E2D;
+      color: #A497B1;
+      margin: 0;
+      padding: 20px;
+    }
+    .form-container, .invoice-container {
+      background-color: #22293C;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    h1 {
+      text-align: center;
+      color: #C4B1FF;
+      font-size: 24px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #E0D9FF;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      color: #E0D9FF;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      margin-top: 4px;
+      background-color: #2E3448;
+      color: #FFF;
+    }
+    .status {
+      color: #00FF7F;
+      font-weight: bold;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #A497B1;
+    }
+    .button-group {
+      text-align: center;
+      margin-top: 30px;
+    }
+    button {
+      background-color: #5B4B78;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #483961;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <h1>Form Input Invoice</h1>
+  <input type="hidden" id="tanggal">
+<p><strong>Tanggal Pembelian:</strong> <span id="outputTanggal"></span></p>
+  
+  <label for="idTransaksi">ID Transaksi</label>
+  <input type="text" id="idTransaksi" placeholder="Contoh: VAZ-123456789">
+
+  <label for="pembayaran">Metode Pembayaran</label>
+  <input type="text" id="pembayaran" placeholder="Contoh: Dana">
+
+  <label for="status">Status Pesanan</label>
+  <input type="text" id="status" placeholder="Contoh: Sukses">
+
+  <label for="item">Item</label>
+  <input type="text" id="item" placeholder="Contoh: Genshin - Blessing of The Welkin Moon ×1">
+
+  <label for="tujuan">Tujuan</label>
+  <input type="text" id="tujuan" placeholder="Contoh: 845191278 (Asia)">
+
+  <label for="nickname">Nickname</label>
+  <input type="text" id="nickname" placeholder="Contoh: ¶IDN·YAZZ¶">
+
+  <label for="harga">Harga</label>
+  <input type="text" id="harga" placeholder="Contoh: Rp. 60.400">
+
+  <div class="button-group">
+    <button onclick="tampilkanInvoice()">Tampilkan Invoice</button>
+    <button onclick="downloadPDF()">Download PDF</button>
+  </div>
+</div>
+
+<div class="invoice-container" id="invoiceResult" style="display: none;">
+  <h1>Invoice TopUp</h1>
+  <div class="section-title">Detail Transaksi</div>
+  <div class="detail">
+    <p><strong>Tanggal Pembelian:</strong> <span id="outputTanggal"></span></p>
+    <p><strong>ID Transaksi:</strong> <span id="outputIdTransaksi"></span></p>
+    <p><strong>Metode Pembayaran:</strong> <span id="outputPembayaran"></span></p>
+    <p><strong>Status Pesanan:</strong> <span class="status" id="outputStatus"></span></p>
+    <p><strong>Item:</strong> <span id="outputItem"></span></p>
+    <p><strong>Tujuan:</strong> <span id="outputTujuan"></span></p>
+    <p><strong>Nickname:</strong> <span id="outputNickname"></span></p>
+    <p><strong>Harga:</strong> <span id="outputHarga"></span></p>
+  </div>
+  <div class="footer">
+    Simpan Bukti Pembelian Untuk Jaga - Jaga Kejadian Tidak Terduga<br>
+    <div style="display: flex; justify-content: space-between; font-size: 7px; margin-top: 5px;">
+  <div style="text-align: left;">WhatsApp: 085157448296</div>
+  <div style="text-align: right;">Instagram: @joki.morifriszx.official</div>
+</div>
+  </div>
+</div>
+
+<script>
+  function generateInvoice() {
+    const id = document.getElementById('transaksiId').value;
+    const nama = document.getElementById('nama').value;
+    const username = document.getElementById('username').value;
+    const produk = document.getElementById('produk').value;
+    const harga = document.getElementById('harga').value;
+    const metode = document.getElementById('metode').value;
+
+    const today = new Date();
+    const tanggal = today.toLocaleDateString('id-ID', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    document.getElementById('r_id').textContent = id;
+    document.getElementById('r_nama').textContent = nama;
+    document.getElementById('r_username').textContent = username;
+    document.getElementById('r_produk').textContent = produk;
+    document.getElementById('r_harga').textContent = harga;
+    document.getElementById('r_metode').textContent = metode;
+    document.getElementById('r_tanggal').textContent = tanggal;
+
+    // Tampilkan invoice dan tombol
+    document.getElementById('invoiceResult').style.display = 'block';
+    document.getElementById('downloadBtn').style.display = 'inline-block';
+  }
+
+  function downloadPDF() {
+    // Tunggu sebentar agar layout benar-benar tampil
+    setTimeout(() => {
+      const invoice = document.getElementById('invoiceResult');
+      html2pdf().from(invoice).set({
+        margin: 10,
+        filename: 'invoice-morifriszx.pdf',
+        html2canvas: { scale: 3, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).save();
+    }, 300); // delay 300ms
+  }
+</script>
+
+</body>
+</html>

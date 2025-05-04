@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Up Genshin Impact - MoriFriszx</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #22293C;
+      color: #A497B1;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .container-game, .container-pricelist {
+      background-color: #2e3650;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .game-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
+    .form-label {
+      color: #A497B1;
+    }
+    .price-card {
+      background-color: #5B4B78;
+      color: #fff;
+      padding: 1rem;
+      border-radius: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .price-card:hover {
+      transform: scale(1.05);
+    }
+    .btn-order {
+      background-color: #9C9BBB;
+      color: #22293C;
+      border: none;
+    }
+    .btn-order:hover {
+      background-color: #A497B1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="container-game text-center mb-4">
+      <img src="image/genshin.png" class="game-logo mb-3" alt="Genshin Impact Logo">
+      <h3 class="text-white">Top Up Genshin Impact</h3>
+    </div><div class="container-game">
+  <div class="mb-3">
+    <label for="userId" class="form-label">User ID</label>
+    <input type="text" class="form-control" id="userId" placeholder="Masukkan ID Kamu">
+  </div>
+  <div class="mb-3">
+    <label for="serverSelect" class="form-label">Pilih Server</label>
+    <select class="form-select" id="serverSelect">
+      <option value="Asia">Asia</option>
+      <option value="America">America</option>
+      <option value="Europe">Europe</option>
+      <option value="TW/HK/MO">TW/HK/MO</option>
+    </select>
+  </div>
+</div>
+
+<div class="container-pricelist">
+  <h5 class="mb-3">Pilih Nominal</h5>
+  <div class="row" id="priceList"></div>
+</div>
+
+ <!-- Tombol Aksi -->
+    <div class="popup-actions">
+  <a id="waOrder" class="btn btn-order w-100 me-2" target="_blank">Order via WhatsApp</a>
+  <a id="tgOrder" class="btn btn-order w-100 me-2" target="_blank">Order via Telegram</a>
+    </div>
+
+<div class="d-flex justify-content-between">
+  <a id="waOrder" class="btn btn-order w-100 me-2" target="_blank">Order via WhatsApp</a>
+  <a id="tgOrder" class="btn btn-order w-100 ms-2" target="_blank">Order via Telegram</a>
+</div>
+
+
+    <div class="order-details text-start">
+      <p><strong>User ID:</strong> <span id="userId"></span></p>
+      <p><strong>Server:</strong> <span id="serverSelect"></span></p>
+      <p><strong>Nickname:</strong> <span id="nicknameDisplay"></span></p>
+      <p><strong>Item:</strong> <span id="itemDisplay"></span></p>
+      <p><strong>Harga:</strong> <span id="priceDisplay"></span></p>
+    </div>
+
+</div>
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1vuxFw18vY3OS1OA2Tq0XOcFGJaUfiE-Wobk9B_MPCMw/gviz/tq?tqx=out:json&sheet=GenshinImpact";
+    let selectedItem = "";
+
+    fetch(sheetUrl)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+        const priceListDiv = document.getElementById('priceList');
+
+        rows.forEach((row, index) => {
+          const item = row.c[0]?.v || "";
+          const price = row.c[1]?.v || "";
+
+          const card = document.createElement('div');
+          card.className = 'col-6 col-md-4 mb-3';
+          card.innerHTML = `
+            <div class="price-card" onclick="selectItem('${item}', '${price}')">
+              <strong>${item}</strong><br>
+              <span>Rp ${price}</span>
+            </div>
+          `;
+          priceListDiv.appendChild(card);
+        });
+      });
+
+    function selectItem(item, price) {
+      selectedItem = `${item} - Rp ${price}`;
+      updateOrderLinks();
+    }
+
+    function updateOrderLinks() {
+      const userId = document.getElementById('userId').value;
+      const server = document.getElementById('serverSelect').value;
+      const message = encodeURIComponent(`Halo, saya ingin top up Genshin Impact:\nID: ${userId}\nServer: ${server}\nPaket: ${selectedItem}`);
+      document.getElementById('waOrder').href = `https://wa.me/6285175050108?text=${message}`;
+      document.getElementById('tgOrder').href = `tg://resolve?domain=MoriFriszx&text=${message}`;
+    }
+
+    document.getElementById('userId').addEventListener('input', updateOrderLinks);
+    document.getElementById('serverSelect').addEventListener('change', updateOrderLinks);
+  </script>
+  </body>
+</html>
